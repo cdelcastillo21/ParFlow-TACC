@@ -112,6 +112,8 @@ Here's a complete example for running a test case:
 
 ## Monitoring Jobs
 
+**Note**: Monitoring scripts are experimental and may not work properly.
+
 After job submission, you'll receive instructions for monitoring your job:
 
 ```bash
@@ -150,4 +152,4 @@ After job submission, you'll receive instructions for monitoring your job:
 - Job output: `<job_name>.o<job_id>`
 - Job errors: `<job_name>.e<job_id>`
 
-For additional support or issues, consult the ParFlow documentation or your system administrator.
+For additional support or issues, consult the ParFlow documentation. For issues running on TACC, reach out to carlosd@tacc.utexas.edu or open an issue at this repository.
