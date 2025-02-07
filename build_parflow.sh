@@ -28,6 +28,7 @@
 #     - hypre/2.30.0
 #     - silo/git2024
 #     - hdf5/1.14.4
+#     - pnetcdf/1.12.3
 #
 # Usage:
 #   ./install_parflow.sh [OPTIONS]
@@ -190,6 +191,7 @@ module load TACC
 module load hypre/2.30.0
 module load silo/git2024
 module load hdf5/1.14.4
+module load pnetcdf/1.12.3
 check_command "Module loading"
 
 # Log loaded modules
@@ -243,9 +245,11 @@ if ! cmake .. \
     -DPARFLOW_AMPS_LAYER=mpi1 \
     -DPARFLOW_AMPS_SEQUENTIAL_IO=true \
     -DPARFLOW_ENABLE_TIMING=true \
+    -DPARFLOW_ENABLE_NETCDF=true \
     -DPARFLOW_HAVE_CLM=ON \
     -DHYPRE_ROOT="${TACC_HYPRE_DIR}" \
     -DSILO_ROOT="${TACC_SILO_DIR}" \
+    -DNETCDF_DIR="${TACC_PNETCDF_DIR}" \
     -DCMAKE_C_COMPILER="${TACC_CC}" \
     -DCMAKE_CXX_COMPILER="${TACC_CXX}" \
     -DCMAKE_Fortran_COMPILER="${TACC_FC}" \

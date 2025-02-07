@@ -190,6 +190,8 @@ module load cmake/3.28.1
 module load hypre/2.30.0
 module load silo/git2024
 module load hdf5/1.14.4
+module load netcdf/4.9.2
+module load pnetcdf/1.12.3
 
 # Set ParFlow directory
 export PARFLOW_DIR=${PARFLOW_DIR}
@@ -201,9 +203,7 @@ WORK_DIR=${JOB_DIR}
 cd \$WORK_DIR
 
 # Copy input files from source directory
-cp ${INPUT_DIR}/*.pfb .
-cp ${INPUT_DIR}/drv_* .
-cp ${INPUT_DIR}/*.tcl .
+cp -r ${INPUT_DIR}/* .
 
 # Run ParFlow using TCL script
 tclsh LW_NetCDF_Test.tcl
