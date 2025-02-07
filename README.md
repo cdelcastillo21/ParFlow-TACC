@@ -65,19 +65,23 @@ Your test case directory should contain:
 
 ### Basic Job Submission
 
-The script `submit_parflow.sh` provides a skeleton for initializing job runs given an input directory.
+The script `submit_parflow.sh` provides a skeleton for initializing job runs given an input directory and TCL script.
 For example, for a basic test run using 1 node with 4 MPI tasks:
 
 ```bash
-./submit_parflow.sh /path/to/test/case -N 1 -n 4
+./submit_parflow.sh /path/to/test/case script.tcl -N 1 -n 4
+
+# Using relative paths
+./submit_parflow.sh ./test/case script.tcl -N 1 -n 4
 ```
 
 ### Full Command Options
 ```bash
-Usage: submit_parflow.sh INPUT_DIR [OPTIONS]
+Usage: submit_parflow.sh INPUT_DIR TCL_SCRIPT [OPTIONS]
 
 Required arguments:
-  INPUT_DIR                      Directory containing ParFlow simulation input files
+  INPUT_DIR                      Directory containing ParFlow simulation input files (absolute or relative path)
+  TCL_SCRIPT                     TCL script to execute (e.g., LW_NetCDF_Test.tcl)
 
 Optional arguments:
   -p, --parflow-dir DIR         ParFlow installation directory (default: $HOME/parflow)
@@ -99,14 +103,23 @@ SLURM job options:
 Here's a complete example for running a test case:
 
 ```bash
-# Assuming you have a test case in ~/parflow_tests/test_case1
-./submit_parflow.sh ~/parflow_tests/test_case1 \
+# Using absolute path
+./submit_parflow.sh ~/parflow_tests/test_case1 run_simulation.tcl \
     -N 1 \
     -n 4 \
     -t 01:00:00 \
     -q skx-dev \
     -A your_allocation \
     -m your.email@example.com \
+    -j test_simulation
+
+# Using relative path
+./submit_parflow.sh ./test_case1 run_simulation.tcl \
+    -N 1 \
+    -n 4 \
+    -t 01:00:00 \
+    -q skx-dev \
+    -A your_allocation \
     -j test_simulation
 ```
 
@@ -146,6 +159,7 @@ After job submission, you'll receive instructions for monitoring your job:
    - Verify your allocation/account is active
    - Check queue limits and restrictions
    - Ensure input files exist in the specified directory
+   - Verify the specified TCL script exists in the input directory
 
 ### Log Files
 - Build logs: `$BUILD_ROOT/parflow_install_<timestamp>.log`
