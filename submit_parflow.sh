@@ -2,11 +2,12 @@
 
 # Function to print usage
 print_usage() {
-    echo "Usage: $(basename $0) INPUT_DIR [OPTIONS]"
+    echo "Usage: $(basename $0) INPUT_DIR TCL_SCRIPT [OPTIONS]"
     echo "Submit ParFlow simulation jobs"
     echo ""
     echo "Required arguments:"
-    echo "  INPUT_DIR                      Directory containing ParFlow simulation input files"
+    echo "  INPUT_DIR                      Directory containing ParFlow simulation input files (absolute or relative path)"
+    echo "  TCL_SCRIPT                     TCL script to execute (e.g., LW_NetCDF_Test.tcl)"
     echo ""
     echo "Optional arguments:"
     echo "  -p, --parflow-dir DIR         ParFlow installation directory (default: \$HOME/parflow)"
@@ -25,10 +26,32 @@ print_usage() {
     echo "  -h, --help                    Show this help message"
 }
 
+# Function to convert relative path to absolute path
+get_absolute_path() {
+    local path="$1"
+    if [[ "$path" == /* ]]; then
+        echo "$path"
+    else
+        echo "$(pwd)/$path"
+    fi
+}
+
 # Function to validate directory exists
 validate_dir() {
-    if [ ! -d "$1" ]; then
+    local dir="$(get_absolute_path "$1")"
+    if [ ! -d "$dir" ]; then
         echo "Error: Directory $1 does not exist"
+        exit 1
+    fi
+    echo "$dir"
+}
+
+# Function to validate file exists
+validate_file() {
+    local file="$1"
+    local dir="$2"
+    if [ ! -f "$dir/$file" ]; then
+        echo "Error: File $file does not exist in directory $dir"
         exit 1
     fi
 }
@@ -40,7 +63,16 @@ get_base_dirname() {
 }
 
 # Parse command line arguments
-INPUT_DIR=""
+if [ $# -lt 2 ]; then
+    print_usage
+    exit 1
+fi
+
+# Get absolute path for INPUT_DIR
+INPUT_DIR="$(get_absolute_path "$1")"
+TCL_SCRIPT="$2"
+shift 2
+
 PARFLOW_DIR="$HOME/parflow"
 ROOT_DIR="$SCRATCH"
 STAGE_ONLY=false
@@ -54,24 +86,14 @@ ACCOUNT=""
 MAIL_ADDRESS=""
 JOB_NAME=""
 
-# Check if no arguments provided
-if [ $# -eq 0 ]; then
-    print_usage
-    exit 1
-fi
-
-# Parse positional and optional arguments
-INPUT_DIR="$1"
-shift
-
 while [[ $# -gt 0 ]]; do
     case $1 in
         -p|--parflow-dir)
-            PARFLOW_DIR="$2"
+            PARFLOW_DIR="$(get_absolute_path "$2")"
             shift 2
             ;;
         -r|--root-dir)
-            ROOT_DIR="$2"
+            ROOT_DIR="$(get_absolute_path "$2")"
             shift 2
             ;;
         -s|--stage-only)
@@ -118,29 +140,16 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Function to validate directory exists
-validate_dir() {
-    if [ ! -d "$1" ]; then
-        echo "Error: Directory $1 does not exist"
-        exit 1
-    fi
-}
-
-# Function to get base directory name
-get_base_dirname() {
-    # Remove trailing slash if present and get base name
-    dirname "$(echo "$1" | sed 's:/*$::')" | xargs basename
-}
-
 # Function to generate timestamp
 get_timestamp() {
     date +"%Y%m%d_%H%M%S"
 }
 
-# Validate input directory
-validate_dir "$INPUT_DIR"
-validate_dir "$PARFLOW_DIR"
-validate_dir "$ROOT_DIR"
+# Validate input directory and TCL script
+INPUT_DIR="$(validate_dir "$INPUT_DIR")"
+validate_file "$TCL_SCRIPT" "$INPUT_DIR"
+PARFLOW_DIR="$(validate_dir "$PARFLOW_DIR")"
+ROOT_DIR="$(validate_dir "$ROOT_DIR")"
 
 # Set job name if not provided
 if [ -z "$JOB_NAME" ]; then
@@ -205,8 +214,8 @@ cd \$WORK_DIR
 # Copy input files from source directory
 cp -r ${INPUT_DIR}/* .
 
-# Run ParFlow using TCL script
-tclsh LW_NetCDF_Test.tcl
+# Run ParFlow using specified TCL script
+tclsh ${TCL_SCRIPT}
 
 # Copy results back to submission directory
 cp -r * \$SLURM_SUBMIT_DIR/
